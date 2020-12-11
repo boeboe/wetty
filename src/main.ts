@@ -9,6 +9,8 @@
 import yargs from 'yargs';
 import { logger } from './shared/logger.js';
 import { start } from './server.js';
+import { startTcpEcho } from './tcpEchoServer.js';
+import { startUdpEcho } from './udpEchoServer.js';
 import { loadConfigFile, mergeCliConf } from './shared/config.js';
 
 const opts = yargs
@@ -41,8 +43,7 @@ const opts = yargs
     type: 'string',
   })
   .option('ssh-auth', {
-    description:
-      'defaults to "password", you can use "publickey,password" instead',
+    description: 'defaults to "password", you can use "publickey,password" instead',
     type: 'string',
   })
   .option('ssh-pass', {
@@ -51,8 +52,7 @@ const opts = yargs
   })
   .option('ssh-key', {
     demand: false,
-    description:
-      'path to an optional client private key (connection will be password-less and insecure!)',
+    description: 'path to an optional client private key (connection will be password-less and insecure!)',
     type: 'string',
   })
   .option('ssh-config', {
@@ -87,9 +87,32 @@ const opts = yargs
     type: 'string',
   })
   .option('allow-iframe', {
-    description:
-      'Allow wetty to be embedded in an iframe, defaults to allowing same origin',
+    description: 'allow wetty to be embedded in an iframe, defaults to allowing same origin',
     type: 'boolean',
+  })
+  .option('tcp-echo-enabled', {
+    description: 'enable local tcp echo server',
+    type: 'boolean',
+  })
+  .option('tcp-echo-host', {
+    description: 'tcp echo server host',
+    type: 'string',
+  })
+  .option('tcp-echo-port', {
+    description: 'tcp echo server port',
+    type: 'number',
+  })
+  .option('udp-echo-enabled', {
+    description: 'enable local udp echo server',
+    type: 'boolean',
+  })
+  .option('udp-echo-host', {
+    description: 'udp echo server host',
+    type: 'string',
+  })
+  .option('udp-echo-port', {
+    description: 'udp echo server port',
+    type: 'number',
   })
   .option('help', {
     alias: 'h',
@@ -103,6 +126,12 @@ if (!opts.help) {
     .then(config => mergeCliConf(opts, config))
     .then(conf =>
       start(conf.ssh, conf.server, conf.command, conf.forceSSH, conf.ssl),
+    )
+    .then(conf =>
+      startTcpEcho(conf.tcpEchoServer),
+    )
+    .then(conf =>
+      startUdpEcho(conf.udpEchoServer),
     )
     .catch((err: Error) => {
       logger.error(err);

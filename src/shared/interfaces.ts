@@ -29,9 +29,23 @@ export interface Server {
   allowIframe: boolean;
 }
 
+export interface TcpEchoServer {
+  enabled: boolean;
+  host: string;
+  port: number;
+}
+
+export interface UdpEchoServer {
+  enabled: boolean;
+  host: string;
+  port: number;
+}
+
 export interface Config {
   ssh: SSH;
   server: Server;
+  tcpEchoServer: TcpEchoServer;
+  udpEchoServer: UdpEchoServer;
   forceSSH: boolean;
   command: string;
   ssl?: SSL;

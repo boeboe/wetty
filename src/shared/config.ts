@@ -4,10 +4,12 @@ import JSON5 from 'json5';
 import isUndefined from 'lodash/isUndefined.js';
 import type { Arguments } from 'yargs';
 
-import type { Config, SSH, Server, SSL } from './interfaces';
+import type { Config, SSH, Server, TcpEchoServer, UdpEchoServer, SSL } from './interfaces';
 import {
   sshDefault,
   serverDefault,
+  tcpEchoServerDefault,
+  udpEchoServerDefault,
   forceSSHDefault,
   defaultCommand,
 } from './defaults.js';
@@ -20,6 +22,8 @@ type confValue =
   | unknown
   | SSH
   | Server
+  | TcpEchoServer
+  | UdpEchoServer
   | SSL;
 /**
  * Cast given value to boolean
@@ -53,6 +57,8 @@ export async function loadConfigFile(filepath?: string): Promise<Config> {
     return {
       ssh: sshDefault,
       server: serverDefault,
+      tcpEchoServer: tcpEchoServerDefault,
+      udpEchoServer: udpEchoServerDefault,
       command: defaultCommand,
       forceSSH: forceSSHDefault,
     };
@@ -66,6 +72,12 @@ export async function loadConfigFile(filepath?: string): Promise<Config> {
     server: isUndefined(parsed.server)
       ? serverDefault
       : Object.assign(serverDefault, parsed.server),
+    tcpEchoServer: isUndefined(parsed.tcpEchoServer)
+      ? tcpEchoServerDefault
+      : Object.assign(tcpEchoServerDefault, parsed.tcpEchoServer),
+    udpEchoServer: isUndefined(parsed.udpEchoServer)
+      ? udpEchoServerDefault
+      : Object.assign(udpEchoServerDefault, parsed.udpEchoServer),
     command: isUndefined(parsed.command) ? defaultCommand : `${parsed.command}`,
     forceSSH: isUndefined(parsed.forceSSH)
       ? forceSSHDefault
@@ -83,9 +95,9 @@ export async function loadConfigFile(filepath?: string): Promise<Config> {
  *
  */
 const objectAssign = (
-  target: SSH | Server,
+  target: SSH | Server | TcpEchoServer | UdpEchoServer,
   source: Record<string, confValue>,
-): SSH | Server =>
+): SSH | Server | TcpEchoServer | UdpEchoServer =>
   Object.fromEntries(
     Object.entries(source).map(([key, value]) => [
       key,
@@ -125,6 +137,16 @@ export function mergeCliConf(opts: Arguments, config: Config): Config {
       title: opts.title,
       allowIframe: opts['allow-iframe'],
     }) as Server,
+    tcpEchoServer: objectAssign(config.tcpEchoServer, {
+      enabled: opts['tcp-echo-enabled'],
+      host: opts['tcp-echo-host'],
+      port: opts['tcp-echo-port'],
+    }) as TcpEchoServer,
+    udpEchoServer: objectAssign(config.udpEchoServer, {
+      enabled: opts['udp-echo-enabled'],
+      host: opts['udp-echo-host'],
+      port: opts['udp-echo-port'],
+    }) as UdpEchoServer,
     command: isUndefined(opts.command) ? config.command : `${opts.command}`,
     forceSSH: isUndefined(opts['force-ssh'])
       ? config.forceSSH

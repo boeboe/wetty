@@ -18,7 +18,7 @@ import {
 
 /**
  * Starts WeTTy Server
- * @name startServer
+ * @name start
  * @returns Promise that resolves SocketIO server
  */
 export async function start(
